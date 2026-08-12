@@ -21,6 +21,10 @@
 // stdout = the model's output only. Diagnostics go to stderr, including
 // pi-run-style "attempting"/"answered by" lines showing the real model used.
 
+import { spawn } from "node:child_process";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { loadConfig, resolveRole } from "./config.mjs";
 
 const DEFAULT_BASE_URL = "https://api.deepseek.com/anthropic";
@@ -28,6 +32,7 @@ const DEFAULT_MODEL = "deepseek-chat";
 const DEFAULT_REASONING_MODEL = "deepseek-reasoner";
 const MAX_TOKENS = 2048;
 const DEFAULT_THINKING_BUDGET = 4096;
+const DEFAULT_CODEX_TIMEOUT_MS = 300_000;
 
 function parseArgs(argv) {
   const flags = { reasoning: false, role: null, config: null };
@@ -42,9 +47,64 @@ function parseArgs(argv) {
   return { flags, prompt: rest.join(" ").trim() };
 }
 
+// Runs the official Codex CLI headless: subscription auth (codex login),
+// read-only sandbox, ephemeral session, final message captured via -o.
+async function callCodexCli(binding, prompt, timeoutMs) {
+  const dir = await mkdtemp(join(tmpdir(), "llm-connector-"));
+  const outFile = join(dir, "answer.txt");
+  const args = [
+    "exec",
+    "--ephemeral",
+    "--skip-git-repo-check",
+    "--sandbox",
+    "read-only",
+    "--color",
+    "never",
+    "-o",
+    outFile,
+  ];
+  if (binding.model) args.push("-m", binding.model);
+  args.push(prompt);
+
+  try {
+    await new Promise((resolve, reject) => {
+      const child = spawn(binding.command, args, { stdio: ["ignore", "ignore", "pipe"] });
+      let stderrTail = "";
+      child.stderr.on("data", (chunk) => {
+        stderrTail = (stderrTail + chunk.toString()).slice(-500);
+      });
+      const timer = setTimeout(() => {
+        child.kill("SIGKILL");
+        reject(new Error(`timed out after ${timeoutMs / 1000}s`));
+      }, timeoutMs);
+      child.on("error", (error) => {
+        clearTimeout(timer);
+        reject(
+          error.code === "ENOENT"
+            ? new Error(
+                `"${binding.command}" not found (install: npm install -g @openai/codex, then: codex login)`
+              )
+            : error
+        );
+      });
+      child.on("exit", (code) => {
+        clearTimeout(timer);
+        if (code === 0) resolve();
+        else reject(new Error(`codex exited ${code}: ${stderrTail.trim()}`));
+      });
+    });
+    const answer = (await readFile(outFile, "utf8")).trim();
+    if (!answer) throw new Error("codex returned an empty final message");
+    return { answer, reasoning: "" };
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
 function directModeBinding(withReasoning) {
   return {
     provider: "env",
+    type: "anthropic",
     model:
       process.env.LLM_MODEL ?? (withReasoning ? DEFAULT_REASONING_MODEL : DEFAULT_MODEL),
     reasoning: false,
@@ -116,22 +176,31 @@ if (flags.role) {
   bindings = [directModeBinding(flags.reasoning)];
 }
 
+const codexTimeoutMs = Number(process.env.LLM_CODEX_TIMEOUT_MS ?? DEFAULT_CODEX_TIMEOUT_MS);
 const failures = [];
 for (const [index, binding] of bindings.entries()) {
-  const label = `${binding.provider}/${binding.model}`;
-  if (!binding.apiKey) {
+  const label = `${binding.provider}/${binding.model ?? "default"}`;
+  if (binding.type === "anthropic" && !binding.apiKey) {
     console.error(`[llm-connector] skipping ${label}: ${binding.apiKeyEnv} not set`);
     failures.push(`${label}: no API key (${binding.apiKeyEnv})`);
     continue;
   }
 
-  const withReasoning = flags.reasoning || binding.reasoning;
+  let withReasoning = flags.reasoning || binding.reasoning;
+  if (withReasoning && binding.type === "codex-cli") {
+    console.error(`[llm-connector] note: ${label} does not expose chain-of-thought; returning answer only`);
+    withReasoning = false;
+  }
+  const via = binding.type === "codex-cli" ? `via=codex exec` : `endpoint=${binding.baseUrl}`;
   console.error(
-    `[llm-connector] attempting ${label} (${index + 1}/${bindings.length}) endpoint=${binding.baseUrl} reasoning=${withReasoning ? "on" : "off"}`
+    `[llm-connector] attempting ${label} (${index + 1}/${bindings.length}) ${via} reasoning=${withReasoning ? "on" : "off"}`
   );
 
   try {
-    const { answer, reasoning } = await callModel(binding, prompt, withReasoning, thinkingBudget);
+    const { answer, reasoning } =
+      binding.type === "codex-cli"
+        ? await callCodexCli(binding, prompt, codexTimeoutMs)
+        : await callModel(binding, prompt, withReasoning, thinkingBudget);
     console.error(`[llm-connector] answered by ${label}`);
     if (withReasoning) {
       console.log(

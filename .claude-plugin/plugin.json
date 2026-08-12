@@ -1,5 +1,5 @@
 {
   "name": "llm-connector",
   "description": "Harness connector PoC: call an external LLM (DeepSeek first) from inside Claude Code — no proxy, no router",
-  "version": "0.3.0"
+  "version": "0.4.0"
 }

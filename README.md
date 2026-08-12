@@ -50,6 +50,21 @@ Config search order: `--config <path>` > `LLM_CONNECTOR_CONFIG` > `./.llm-connec
 
 Any Anthropic-compatible endpoint is a provider — add one with a `baseUrl` + `apiKeyEnv` and reference it from any role.
 
+### OpenAI on your ChatGPT subscription (codex-cli provider)
+
+A provider with `"type": "codex-cli"` routes through the official [OpenAI Codex CLI](https://github.com/openai/codex) instead of an HTTP endpoint — flat-rate on your ChatGPT plan, no API key:
+
+```bash
+npm install -g @openai/codex
+codex login
+```
+
+```json
+"openai-codex": { "type": "codex-cli" }
+```
+
+The connector runs `codex exec` headless (ephemeral session, read-only sandbox) and captures the final message. Because auth is the official CLI's own login, no reverse-engineered OAuth is involved. With two families configured, Pi-style separation rules become real: keep `openai-codex` out of the `build` role and your `test`/`verify` roles can never share a family with the implementer.
+
 ## How it works
 
 - `skills/ask-deepseek/SKILL.md` — the skill Claude loads; it shells out to the bundled script via `${CLAUDE_PLUGIN_ROOT}`.

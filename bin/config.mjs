@@ -62,18 +62,36 @@ export function resolveRole(config, role) {
   }
   return bindings.map((binding) => {
     const provider = config.providers?.[binding.provider];
-    if (!provider?.baseUrl || !provider?.apiKeyEnv) {
-      throw new Error(
-        `Role "${role}" references provider "${binding.provider}", which is missing or incomplete (needs baseUrl + apiKeyEnv)`
-      );
+    if (!provider) {
+      throw new Error(`Role "${role}" references unknown provider "${binding.provider}"`);
     }
-    return {
+    const type = provider.type ?? "anthropic";
+    const base = {
       provider: binding.provider,
       model: binding.model,
       reasoning: binding.reasoning === true,
-      baseUrl: provider.baseUrl.replace(/\/+$/, ""),
-      apiKeyEnv: provider.apiKeyEnv,
-      apiKey: process.env[provider.apiKeyEnv],
+      type,
     };
+    if (type === "anthropic") {
+      if (!provider.baseUrl || !provider.apiKeyEnv) {
+        throw new Error(
+          `Provider "${binding.provider}" (type anthropic) needs baseUrl + apiKeyEnv`
+        );
+      }
+      return {
+        ...base,
+        baseUrl: provider.baseUrl.replace(/\/+$/, ""),
+        apiKeyEnv: provider.apiKeyEnv,
+        apiKey: process.env[provider.apiKeyEnv],
+      };
+    }
+    if (type === "codex-cli") {
+      // Subscription-authed via the official OpenAI Codex CLI (codex login);
+      // no key env needed — auth lives in ~/.codex/auth.json.
+      return { ...base, command: provider.command ?? "codex" };
+    }
+    throw new Error(
+      `Provider "${binding.provider}" has unknown type "${type}" (expected "anthropic" or "codex-cli")`
+    );
   });
 }
