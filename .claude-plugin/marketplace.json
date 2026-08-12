@@ -1,5 +1,8 @@
 {
   "name": "harness-claude-extension",
+  "metadata": {
+    "description": "Multi-LLM orchestration plugins for Claude Code: run other models (DeepSeek first) from inside your Claude session"
+  },
   "owner": {
     "name": "jamesdavisonio",
     "url": "https://github.com/jamesdavisonio"
