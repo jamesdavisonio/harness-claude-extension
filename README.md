@@ -34,6 +34,22 @@ node bin/ask-external-llm.mjs "Say hello in one sentence."
 claude --plugin-dir /path/to/harness-claude-extension
 ```
 
+## Role routing (config file)
+
+Instead of naming a model, name a **role** — the config decides which model family answers, with ordered fallback (first entry preferred; missing-key entries skipped; HTTP failures fall through to the next entry in the same role):
+
+```
+/llm-connector:ask-llm ask the verify role: is this migration safe?
+```
+
+```bash
+node bin/ask-external-llm.mjs --role verify "Is this migration safe?"
+```
+
+Config search order: `--config <path>` > `LLM_CONNECTOR_CONFIG` > `./.llm-connector.json` > `~/.llm-connector.json` > built-in default (DeepSeek only). Copy [templates/llm-connector.example.json](templates/llm-connector.example.json) to get started. Roles follow the deciding-vs-doing split: `plan`/`verify` bind reasoning models (`"reasoning": true` returns chain-of-thought), `build`/`fast` bind cheap executors, `test` exists so the test author can be a different family than the implementer.
+
+Any Anthropic-compatible endpoint is a provider — add one with a `baseUrl` + `apiKeyEnv` and reference it from any role.
+
 ## How it works
 
 - `skills/ask-deepseek/SKILL.md` — the skill Claude loads; it shells out to the bundled script via `${CLAUDE_PLUGIN_ROOT}`.

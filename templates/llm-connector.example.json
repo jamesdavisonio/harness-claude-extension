@@ -1,0 +1,16 @@
+{
+  "_readme": "Copy to .llm-connector.json in your project (or ~/). Roles follow the deciding-vs-doing split: plan/verify get reasoning models, build/fast get cheap executors. Each role is an ORDERED fallback list: first entry preferred; entries whose API key env var is unset are skipped; on HTTP failure the next entry is tried. Never falls through across roles. Add providers by giving any Anthropic-compatible endpoint a baseUrl + apiKeyEnv.",
+  "providers": {
+    "deepseek": {
+      "baseUrl": "https://api.deepseek.com/anthropic",
+      "apiKeyEnv": "DEEPSEEK_API_KEY"
+    }
+  },
+  "roles": {
+    "fast": [{ "provider": "deepseek", "model": "deepseek-chat" }],
+    "plan": [{ "provider": "deepseek", "model": "deepseek-reasoner", "reasoning": true }],
+    "test": [{ "provider": "deepseek", "model": "deepseek-chat" }],
+    "build": [{ "provider": "deepseek", "model": "deepseek-chat" }],
+    "verify": [{ "provider": "deepseek", "model": "deepseek-reasoner", "reasoning": true }]
+  }
+}
