@@ -5,6 +5,10 @@
       "baseUrl": "https://api.deepseek.com/anthropic",
       "apiKeyEnv": "DEEPSEEK_API_KEY"
     },
+    "zai": {
+      "baseUrl": "https://api.z.ai/api/anthropic",
+      "apiKeyEnv": "ZAI_API_KEY"
+    },
     "openai-codex": {
       "type": "codex-cli"
     }
@@ -16,7 +20,10 @@
       { "provider": "deepseek", "model": "deepseek-reasoner", "reasoning": true }
     ],
     "test": [{ "provider": "openai-codex" }],
-    "build": [{ "provider": "deepseek", "model": "deepseek-chat" }],
+    "build": [
+      { "provider": "deepseek", "model": "deepseek-chat" },
+      { "provider": "zai", "model": "glm-5.2" }
+    ],
     "verify": [
       { "provider": "openai-codex" },
       { "provider": "deepseek", "model": "deepseek-reasoner", "reasoning": true }
