@@ -20,11 +20,11 @@ export const DEFAULT_CONFIG = {
     },
   },
   roles: {
-    fast: [{ provider: "deepseek", model: "deepseek-chat" }],
-    plan: [{ provider: "deepseek", model: "deepseek-reasoner", reasoning: true }],
-    test: [{ provider: "deepseek", model: "deepseek-chat" }],
-    build: [{ provider: "deepseek", model: "deepseek-chat" }],
-    verify: [{ provider: "deepseek", model: "deepseek-reasoner", reasoning: true }],
+    fast: [{ provider: "deepseek", model: "deepseek-v4-flash" }],
+    plan: [{ provider: "deepseek", model: "deepseek-v4-pro", reasoning: true }],
+    test: [{ provider: "deepseek", model: "deepseek-v4-flash" }],
+    build: [{ provider: "deepseek", model: "deepseek-v4-flash" }],
+    verify: [{ provider: "deepseek", model: "deepseek-v4-pro", reasoning: true }],
   },
 };
 

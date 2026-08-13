@@ -75,7 +75,7 @@ Everything is overridable via env, so any Anthropic-compatible endpoint (includi
 | Variable | Default |
 |---|---|
 | `LLM_BASE_URL` | `https://api.deepseek.com/anthropic` |
-| `LLM_MODEL` | `deepseek-chat` |
+| `LLM_MODEL` | `deepseek-v4-flash` (`deepseek-v4-pro` with `--reasoning`) |
 | `LLM_API_KEY` | falls back to `DEEPSEEK_API_KEY` |
 
 ## Why the Anthropic-compatible endpoint

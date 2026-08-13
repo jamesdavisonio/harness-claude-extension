@@ -14,19 +14,19 @@
     }
   },
   "roles": {
-    "fast": [{ "provider": "deepseek", "model": "deepseek-chat" }],
+    "fast": [{ "provider": "deepseek", "model": "deepseek-v4-flash" }],
     "plan": [
       { "provider": "openai-codex" },
-      { "provider": "deepseek", "model": "deepseek-reasoner", "reasoning": true }
+      { "provider": "deepseek", "model": "deepseek-v4-pro", "reasoning": true }
     ],
     "test": [{ "provider": "openai-codex" }],
     "build": [
-      { "provider": "deepseek", "model": "deepseek-chat" },
+      { "provider": "deepseek", "model": "deepseek-v4-flash" },
       { "provider": "zai", "model": "glm-5.2" }
     ],
     "verify": [
       { "provider": "openai-codex" },
-      { "provider": "deepseek", "model": "deepseek-reasoner", "reasoning": true }
+      { "provider": "deepseek", "model": "deepseek-v4-pro", "reasoning": true }
     ]
   }
 }

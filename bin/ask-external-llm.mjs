@@ -10,7 +10,7 @@
 //
 // Direct mode env:
 //   LLM_BASE_URL         default https://api.deepseek.com/anthropic
-//   LLM_MODEL            default deepseek-chat (deepseek-reasoner with --reasoning)
+//   LLM_MODEL            default deepseek-v4-flash (deepseek-v4-pro with --reasoning)
 //   LLM_API_KEY          falls back to DEEPSEEK_API_KEY
 //   LLM_THINKING_BUDGET  reasoning token budget, default 4096
 //
@@ -28,8 +28,8 @@ import { join } from "node:path";
 import { loadConfig, resolveRole } from "./config.mjs";
 
 const DEFAULT_BASE_URL = "https://api.deepseek.com/anthropic";
-const DEFAULT_MODEL = "deepseek-chat";
-const DEFAULT_REASONING_MODEL = "deepseek-reasoner";
+const DEFAULT_MODEL = "deepseek-v4-flash";
+const DEFAULT_REASONING_MODEL = "deepseek-v4-pro";
 const MAX_TOKENS = 2048;
 const DEFAULT_THINKING_BUDGET = 4096;
 const DEFAULT_CODEX_TIMEOUT_MS = 300_000;

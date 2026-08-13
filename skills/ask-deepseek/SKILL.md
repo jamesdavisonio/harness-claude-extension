@@ -16,7 +16,7 @@ Relay a prompt to DeepSeek and bring its answer back into the conversation.
 node "${CLAUDE_PLUGIN_ROOT}/bin/ask-external-llm.mjs" "<the user's question>"
 ```
 
-   Add `--reasoning` before the question when the user wants to see DeepSeek's chain-of-thought, when the answer will be handed to another model as a second opinion, or for judgment/verification questions where the WHY matters as much as the answer. This switches to the `deepseek-reasoner` model and returns `## Reasoning` + `## Answer` sections.
+   Add `--reasoning` before the question when the user wants to see DeepSeek's chain-of-thought, when the answer will be handed to another model as a second opinion, or for judgment/verification questions where the WHY matters as much as the answer. This switches to the `deepseek-v4-pro` model and returns `## Reasoning` + `## Answer` sections.
 
 2. Present stdout to the user, clearly attributed as **DeepSeek's answer** — do not blend it with your own opinion. If the user wants your view too, give it separately and labeled.
 
