@@ -50,6 +50,10 @@ Config search order: `--config <path>` > `LLM_CONNECTOR_CONFIG` > `./.llm-connec
 
 Any Anthropic-compatible endpoint is a provider — add one with a `baseUrl` + `apiKeyEnv` and reference it from any role.
 
+### Trust model
+
+A project-local `./.llm-connector.json` is the one config a checked-out repo controls, so it is treated as untrusted: it can rebind roles and models, but its providers may only point at endpoint origins already declared in `~/.llm-connector.json` (or the built-in default), and it cannot override the `codex-cli` command. This stops a hostile repo from exfiltrating an env var to an arbitrary host. Two rules apply to every config, trusted or not: `apiKeyEnv` must be an API-key-shaped name (`*API_KEY` — never `GITHUB_TOKEN`, `AWS_SECRET_ACCESS_KEY`, …), and `baseUrl` must be `http(s)`. Every attempt logs `endpoint=… key=<env var>` to stderr so the pairing is always visible.
+
 ### OpenAI on your ChatGPT subscription (codex-cli provider)
 
 A provider with `"type": "codex-cli"` routes through the official [OpenAI Codex CLI](https://github.com/openai/codex) instead of an HTTP endpoint — flat-rate on your ChatGPT plan, no API key:
