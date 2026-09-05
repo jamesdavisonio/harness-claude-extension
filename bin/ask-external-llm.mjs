@@ -165,9 +165,11 @@ if (!prompt) {
 let bindings;
 if (flags.role) {
   try {
-    const { config, source } = loadConfig(flags.config);
-    bindings = resolveRole(config, flags.role);
-    console.error(`[llm-connector] config=${source} role=${flags.role} bindings=${bindings.length}`);
+    const { config, source, trusted } = loadConfig(flags.config);
+    bindings = resolveRole(config, flags.role, { trusted });
+    console.error(
+      `[llm-connector] config=${source}${trusted ? "" : " (project-local, restricted)"} role=${flags.role} bindings=${bindings.length}`
+    );
   } catch (error) {
     console.error(`Error: ${error.message}`);
     process.exit(1);
@@ -191,7 +193,10 @@ for (const [index, binding] of bindings.entries()) {
     console.error(`[llm-connector] note: ${label} does not expose chain-of-thought; returning answer only`);
     withReasoning = false;
   }
-  const via = binding.type === "codex-cli" ? `via=codex exec` : `endpoint=${binding.baseUrl}`;
+  const via =
+    binding.type === "codex-cli"
+      ? `via=codex exec`
+      : `endpoint=${binding.baseUrl} key=${binding.apiKeyEnv}`;
   console.error(
     `[llm-connector] attempting ${label} (${index + 1}/${bindings.length}) ${via} reasoning=${withReasoning ? "on" : "off"}`
   );
